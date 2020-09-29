@@ -1,0 +1,1086 @@
+openapi: 3.0.1
+info:
+  title: i9dea Klumfy Gears
+  description: 'Hello there you. Welcome to i9dea Gamification Platform, the one witch we used to call Klumfy Gears. This is the documentation about our beloved API. More information around you can get at [http://i9dea.com/klumfy](http://i9dea.com/klumfy).'
+  
+  termsOfService: http://i9dea.com/klumfy/gears/terms/
+  contact:
+    email: admin@i9dea.com
+  license:
+    name: Unlicence
+  version: 0.0.1
+externalDocs:
+  description: Find out more about Klumfy Gears
+  url: https://i9dea.com/klumfy/gears
+servers:
+- url: https://gears.klumfy.i9dea.com/v2
+tags:
+- name: Accounts
+  description: Operations about user and i9dea Service Accounts
+  externalDocs:
+    description: Find out more about our store
+    url: https://i9dea.com/klumfy/services
+- name: Universe
+  description: Main Klumfy gamefication node
+  externalDocs:
+    description: Find out more
+    url: https://i9dea.com/klumfy/gears/api/universe
+- name: Universe Games
+- name: Games
+  description: Access and management to universe games
+paths:
+  /account:
+    post:
+      tags:
+      - Accounts
+      summary: Create user
+      description: This can only be done by the logged in user.
+      operationId: createUser
+      requestBody:
+        description: New user data object
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        "201":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "401":
+          description: Unauthorized
+        "422":
+          description: invalid parameter value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+      security:
+      - api_key:
+  /account/login:
+    get:
+      tags:
+      - Accounts
+      summary: Logs user into the system
+      operationId: loginUser
+      parameters:
+      - name: username
+        in: query
+        description: The user name for login
+        required: true
+        schema:
+          type: string
+      - name: password
+        in: query
+        description: The password for login in clear text
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+        "400":
+          description: Invalid username/password supplied
+          content: {}
+      security:
+      - http:
+  /account/logout:
+    get:
+      tags:
+      - Accounts
+      summary: Logs out current logged in user session
+      operationId: logoutUser
+      responses:
+        default:
+          description: successful operation
+          content: {}
+        "400":
+          description: Invalid username/password supplied
+          content: {}
+      security:
+      - api_key:
+  /account/session:
+    post:
+      tags:
+      - Accounts
+      summary: Create a authorizated session
+      operationId: createSession
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+                    format: uuid
+                  context:
+                    type: object
+                    format: json
+      security:
+      - api_key:
+  /universe/games:
+    get:
+      tags:
+      - Universe
+      summary: Lists all universe`s games
+      operationId: listUniverseGames
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+        "401":
+          description: Unauthorized
+        "422":
+          description: invalid parameter value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+      security:
+      - api_key:
+    post:
+      tags:
+      - Universe
+      summary: Create a new Game in the Universe
+      operationId: createUniverseGame
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+      responses:
+        "201":
+          description: game created
+        "405":
+          description: invalid input
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:
+  /universe/players:
+    get:
+      tags:
+      - Universe
+      summary: List all player available for it universe
+      description: Player belongs to users
+      operationId: listUniversePlayers
+      responses:
+        "200":
+          description: success operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Player'
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:
+    post:
+      tags:
+      - Universe
+      summary: Create a new Player
+      description: Add a new Player for a given user through it external reference. It could be a email or a code.
+      operationId: createUniversePlayer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: 
+              - reference
+              properties:
+                reference:
+                  type: string
+                displayName:
+                  type: string
+                  format: name
+      responses:
+        "201":
+          description: player created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  playerId:
+                    type: string
+                    format: uuid
+                  reference:
+                    type: string
+                  created:
+                    $ref: '#/components/schemas/Moment'
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:
+  /universe/skills:
+    get:
+      tags: 
+      - Universe
+      summary: List Universe available Skills
+      description: Skills are Player characteritics that must be change through Prizes Actions/Effects
+      operationId: listUniverseSkills
+      responses:
+        "200":
+          description: success operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Skill'
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:
+    post:
+      tags:
+      - Universe
+      summary: Create a new Universe Skill
+      description: Create a new Universe Skill
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: 
+              - name
+              - type
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                  format: uuid
+                description:
+                  type: string
+                defaultValue:
+                  type: object
+                  format: json
+      responses:
+        "201":
+          description: new skill created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:   
+  /universe/games/{gameId}:
+    get:
+      tags: 
+      - Universe Games
+      summary: Show an Universe Game summary information
+      operationId: showUniverseGame
+      parameters:
+      - name: gameId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: success operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:
+  /universe/games/{gameId}/players:
+    get:
+      tags:
+        - Universe Games
+      summary: List all Players added to the Universe Game
+      operationId: listUniverseGamePlayers
+      parameters:
+      - name: gameId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: success operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Player'
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:
+    post:
+      tags:
+      - Universe Games
+      summary: Add a existent Universe Player to Universe Game
+      operationId: addPlayerToUniverseGame
+      parameters: 
+      - name: gameId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "201":
+          description: player can participate at game now
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gameId:
+                    type: string
+                    format: uuid
+                  playerId:
+                    type: string
+                    format: uuid
+                  moment:
+                    $ref: '#/components/schemas/Moment'
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:
+  /universe/games/{gameId}/prizes:
+    get:
+      tags:
+      - Universe Games
+      summary: List all Prizes the Game Universe can offer to a player
+      operationId: listUniverseGamePrizes
+      parameters: 
+      - name: gameId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: success operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prize'
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:
+    post:
+      tags: 
+      - Universe Games
+      summary: Create a new Prize for the Universe Game
+      operationId: createUniverseGamePrize
+      parameters: 
+      - name: gameId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "201":
+          description: created new prize
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prize'
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:
+  /universe/games/{gameId}/adventures:
+    get:
+      tags:
+      - Universe Games
+      summary: List all Adventures of the Universe Game
+      parameters: 
+      - name: gameId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: success operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Adventure'
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:
+  /universe/context-expressions:
+    post:
+      tags:
+      - Universe
+      summary: Create a new Context Expression
+      operationId: createUniverseContextExpression
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContextExpression'
+      responses:
+        "201":
+          description: context expression created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  contextExpressionId:
+                    type: string
+                    format: uuid
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:
+  /players/{playerId}:
+    get:
+      tags:
+      - Players
+      summary: Show Player basic information
+      operationId: showPlayerInfo
+      parameters:
+      - name: playerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: success operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        "401":
+          description: Unauthorized
+      security:
+      - api_key:
+    put:
+      tags:
+      - Players
+      summary: Update Player displayName
+      operationId: updatePlayerDisplayName
+      parameters: 
+      - name: playerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                  format: name
+      responses:
+        default:
+          description: new display name set
+          content:
+            {}
+      security:
+      - api_key:
+  /players/{playerId}/games:
+    get:
+      tags:
+      - Players
+      summary: Lists all Games that the user participates
+      description: Multiple status values can be provided with comma separated strings
+      operationId: findPetsByStatus
+      parameters:
+      - name: playerId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+        "400":
+          description: Invalid status value
+          content: {}
+      security:
+      - api_key:
+  /players/{playerId}/games/{gameId}/skills:
+    get:
+      tags:
+      - Players
+      summary: Lists all Games that the user participates
+      description: Multiple status values can be provided with comma separated strings
+      operationId: listPlayerGameSkills
+      parameters:
+      - name: playerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: gameId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+        "400":
+          description: Invalid status value
+          content: {}
+      security:
+      - api_key:
+  /players/{playerId}/adventures:
+    get:
+      tags:
+      - Players
+      summary: Get an adventure list that player is on
+      description: Muliple tags can be provided with comma separated strings. Use         tag1,
+        tag2, tag3 for testing.
+      operationId: findPetsByTags
+      parameters:
+      - name: playerId
+        in: path
+        description: Tags to filter by
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Adventure'
+        "400":
+          description: Invalid tag value
+          content: {}
+      security:
+      - api_key:
+  /players/{playerId}/adventures/{adventureId}/matches:
+    get:
+      tags:
+      - Players
+      summary: List of matches for the given adventure
+      description: Returns a single pet
+      operationId: getPetById
+      parameters:
+      - name: playerId
+        in: path
+        description: ID of the player
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: adventureId
+        in: path
+        description: ID of the adventure
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Match'
+        "400":
+          description: Invalid ID supplied
+          content: {}
+        "404":
+          description: Adventure not found
+          content: {}
+      security:
+      - api_key: []
+    post:
+      tags:
+      - Players
+      summary: Join a existent Match
+      operationId: updatePetWithForm
+      parameters:
+        - name: playerId
+          in: path
+          description: ID of pet to return
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: adventureId
+          in: path
+          description: ID of the adventure
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                name:
+                  type: string
+                  description: Updated name of the pet
+                status:
+                  type: string
+                  description: Updated status of the pet
+      responses:
+        "405":
+          description: Invalid input
+          content: {}
+      security:
+      - api_key:
+        
+  /games/{gameId}:
+    get:
+      tags: 
+      - Games
+      summary: Game basic information
+      operationId: showGame
+      parameters: 
+      - name: gameId
+        in: path
+        description: Game ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: success operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+      security:
+      - api_key:               
+  /games/{gameId}/players:
+    get:
+      tags:
+      - Games
+      summary: List Game Players
+      operationId: uploadFile
+      parameters:
+      - name: gameId
+        in: path
+        description: ID of pet to update
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      security:
+      - api_key:
+  /games/{gameId}/adventures/{adventureId}/matches:
+    get:
+      tags: 
+      - Games
+      summary: List existent Adventure matches
+      operationId: listGameMatches
+      parameters: 
+      - name: gameId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: adventureId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: success operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Match'
+      security:
+      - api_key:
+    post:
+      tags: 
+      - Games
+      summary: Create a new Match for it Adventure
+      parameters: 
+      - name: gameId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: adventureId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "201":
+          description: new match started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Match'
+      security:
+      - api_key:
+  /games/{gameId}/adventures/{adventureId}/actions:
+    post:
+      tags:
+      - Games
+      summary: Describe a Action after some game effect to or by an Player/Actor.
+      parameters:
+      - name: gameId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: adventureId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                matchId:
+                  type: string
+                  format: uuid
+                action:
+                    $ref: '#/components/schemas/GameAction'
+                context:
+                  type: object
+                  format: json
+      responses:
+        "201":
+          description: success operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameActionResponse'
+      security:
+      - api_key:
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+      xml:
+        name: User
+    ServiceAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/User'
+        serviceName:
+          type: string
+        serviceCredential:
+          type: string
+        authType:
+          type: string
+        
+    Universe:
+      required:
+      - id
+      - name
+      - author
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        author:
+          $ref: '#/components/schemas/User'
+        name:
+          type: string
+          example: doggie
+        description:
+          type: string
+    Game:
+      required: 
+      - id
+      - universe
+      - name
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        universe:
+          $ref: '#/components/schemas/Universe'
+        name:
+          type: string
+        description:
+          type: string
+      xml:
+        name: Order
+    Player:
+      required: 
+      - id
+      - universe
+      - user
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        universe:
+          $ref: '#/components/schemas/Universe'
+        user:
+          $ref: '#/components/schemas/User'
+        displayName:
+          type: string
+      xml:
+        name: Player
+    Skill:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        universe:
+          $ref: '#/components/schemas/Universe'
+        name:
+          type: string
+        type:
+          type: string
+        context:
+          type: string
+          format: json
+      xml:
+        name: Skill
+    Prize:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        universe:
+          $ref: '#/components/schemas/Universe'
+        type:
+          type: string
+        triggers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextExpression'
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextExpression'
+        name:
+          type: string
+    ContextExpression:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        universe:
+          $ref: '#/components/schemas/Universe'
+        type:
+          type: string
+        expression:
+          type: string
+        context:
+          type: object
+          format: json
+    Adventure:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        game:
+          $ref: '#/components/schemas/Game'
+        teams:
+          type: array
+          items:
+            $ref: '#/components/schemas/Team'
+    Team:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        adventure:
+          $ref: '#/components/schemas/Adventure'
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/Player'
+        name:
+          type: string
+    Match:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        adventure:
+          $ref: '#/components/schemas/Adventure'
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/Player'
+    GameAction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          type: string
+          format: uuid
+        target:
+          type: string
+          format: uuid
+        context:
+          type: object
+          format: json
+    GameActionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        context:
+          type: object
+          format: json
+    MatchTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        match:
+          $ref: '#/components/schemas/Match'
+        type:
+          type: string
+        trigger:
+          $ref: '#/components/schemas/ContextExpression'
+        action:
+          $ref: '#/components/schemas/ContextExpression'
+        target:
+          type: string
+          format: uuid
+    Moment:
+      type: object
+      properties:
+        at:
+          type: string
+          format: date-time
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+    ValidationError:
+      type: object
+      properties:
+        message: "validation failures"
+        fields:
+          type: array
+          items:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                message:
+                  type: string
+  securitySchemes:
+    http:
+      "scheme": "basic"
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
